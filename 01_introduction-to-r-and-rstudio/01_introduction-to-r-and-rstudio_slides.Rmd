@@ -1,7 +1,10 @@
 ---
 title: "Introduction to R and RStudio"
 author: Ian Handel
-output: ioslides_presentation
+output: 
+  ioslides_presentation: 
+    highlight: haddock
+    logo: figures/Rlogo.svg
 mode: selfcontained
 widescreen: true
 ---
@@ -13,15 +16,45 @@ library(tidyverse)
 opts_chunk$set(comment="", 
                digits = 3, 
                tidy = FALSE, 
-               prompt = TRUE,
+               prompt = FALSE,
                fig.align = 'center')
-theme_set(theme_bw() + theme(legend.position = "top"))
+theme_set(theme_classic() + theme(legend.position = "top"))
 ```
----
 
-```{r}
+## Here's code that makes the slide
 
-ggplot(mpg, aes(manufacturer, hwy)) +
-  geom_point()
+```{r, fig.width=5, fig.height=3.5}
+
+ggplot(mpg, aes(reorder(manufacturer, hwy), hwy)) +
+  geom_boxplot(colour = "grey70") +
+  geom_point(position = position_jitter(h = 0, w = 0.2), pch = 1) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Manufacturer", y = "Highway MPG")
 
 ```
+
+## Now another slide
+
+And some more words
+
+About nothing in particular
+
+```{r, out.width="600px", echo = FALSE}
+include_graphics("figures/pretty_picture.png")
+```
+
+## And some of the data that made it...
+
+```{r, echo = FALSE, results='asis'}
+mpg %>% 
+  sample_n(10) %>%
+  kable(format = "html") %>% 
+  kableExtra::kable_styling(font_size = 16)
+```
+
+## And a slide of text
+
+* Some stuff
+* And some more
+* What else is there to say???
+
