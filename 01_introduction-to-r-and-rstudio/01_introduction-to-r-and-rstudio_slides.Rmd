@@ -1,0 +1,27 @@
+---
+title: "Introduction to R and RStudio"
+author: Ian Handel
+output: ioslides_presentation
+mode: selfcontained
+widescreen: true
+---
+
+```{r opts, include = FALSE}
+options(width = 90)
+library(knitr)
+library(tidyverse)
+opts_chunk$set(comment="", 
+               digits = 3, 
+               tidy = FALSE, 
+               prompt = TRUE,
+               fig.align = 'center')
+theme_set(theme_bw() + theme(legend.position = "top"))
+```
+---
+
+```{r}
+
+ggplot(mpg, aes(manufacturer, hwy)) +
+  geom_point()
+
+```
