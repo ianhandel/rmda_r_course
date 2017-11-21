@@ -1,0 +1,256 @@
+---
+title: "Data Wrangling Example"
+output:
+  html_document:
+    highlight: tango
+    theme: cerulean
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+---
+
+```{r setup, include=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(stringr) # for text string stuff
+library(forcats) # for factor stuff
+library(knitr) # for markdown options
+library(kableExtra) # makes tables nicer
+```
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+
+show_df <- function(df){
+  modify_if(df, .p = is_character, ~ replace(.x, is.na(.x), "")) %>%
+  kable(format = "markdown") %>% 
+  print()
+}
+```
+Importing and tidy some ficitious data
+
+NB: These results are very much made up!
+
+
+## Import data
+
+From sheet number 1 of the spreadsheet
+
+(Can use the sheet "name" instead of sheet number)
+
+```{r}
+DATA_FILE_NAME <- "ih-trial_results_20171020.xlsx"
+
+dat <- readxl::read_excel(DATA_FILE_NAME, sheet = 1)
+```
+  
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+## Fill down the 'gappy' columns
+
+```{r}
+dat <- dat %>% 
+  fill(sex, age, treatment)
+```
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+
+## Make the subject ID nice
+
+```{r}
+dat <- dat %>% 
+  mutate(subject = paste0("A", str_pad(subject, 3, "left", "0")))
+```
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+## Clean the sex/status column
+
+### Tally sex spellings
+
+This doesn't change the dataframe - just prints a sumary table
+
+```{r,fig.width=4}
+dat %>%
+  group_by(sex) %>%
+  tally() %>% 
+  kable(format = "html", caption = "Recorded sexes") %>% 
+  kable_styling(full_width = FALSE) # looks better
+```
+
+### Fix sex spellings
+
+```{r}
+dat <- dat %>%
+  mutate(sex = case_when(sex == "female nneutered" ~ "fn",
+                         sex == "male entire" ~ "me",
+                         sex == "MN" ~ "mn",
+                         TRUE ~ sex))
+```
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+## Separate sex/status into 2 columns
+
+```{r}
+dat <- dat %>% 
+  tidyr::separate(sex, c("sex", "neuter_status"), 1)
+```
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+## Make ages in months into years
+
+```{r, size=0.1}
+dat <- dat %>%
+  mutate(age = case_when(
+                    str_detect(age, "month") ~ parse_number(age) / 12,
+                    TRUE ~ parse_number(age)))
+```
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+## Gather results and add week column
+
+```{r}
+dat <- dat %>%
+  tidyr::gather("week", "glucose", `week 1`:`week 4`) %>% 
+  mutate(week = parse_number(week))
+```
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+
+## Check glucose for obvious typos
+
+```{r, fig.height=3}
+ggplot(dat, aes(x = glucose)) +
+  geom_histogram(binwidth = 5) +
+  coord_cartesian(ylim = c(0, 10)) + 
+  labs(title = "Quick histogram of all glucoses",
+       subtitle = "NB: y axis truncated")
+```
+
+### Make a table of unusual results
+
+This doesn't change the dataframe - just makes a table
+
+```{r}
+dat %>% 
+  dplyr::filter(glucose > 50) %>% 
+  dplyr::select(subject, week, rep, glucose) %>% 
+  kable(format = "html", caption = "Unusually high glucose results") %>% 
+  kable_styling(full_width = FALSE) # looks better
+```
+
+### Now fix unusually high results
+
+(Lets assume we went back to the paper records)
+
+```{r}
+
+dat <- dat %>%
+  mutate(glucose = case_when(subject == "A006" &
+                             week == 1 &
+                             rep == 2 ~         6.04,
+                           
+                           subject == "A012" &
+                             week == 2 &
+                             rep == 2 ~         7.76,
+                           
+                           subject == "A012" &
+                             week == 3 &
+                             rep == 1 ~         7.23,
+                           
+                           subject == "A003" &
+                             week == 4 &
+                             rep == 2 ~         4.08,
+                           
+                           subject == "A004" &
+                             week == 4 &
+                             rep == 1 ~         7.37,
+                           
+                           TRUE ~               glucose))
+  
+```
+
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+## Create a new column for when glucose > 5
+
+```{r}
+dat <- dat %>%
+  mutate(glucose_category = case_when(glucose > 5.0 ~ "high",
+                                  glucose <= 5.0 ~ "normal",
+                                  NA ~ NA_character_,
+                                  TRUE ~ "other"))
+```
+
+```{r, results='asis', echo=FALSE}
+dat %>% show_df()
+```
+
+## Summary proportions
+
+### Group the data by subject (ID) into a new dataframe
+
+Then count high glucose measurements (and total number of measurements)
+
+```{r}
+dat_summary <- dat %>%  
+  group_by(subject) %>% 
+  summarise(n_high = sum(glucose_category == "high"),
+            n = sum(!is.na(glucose_category))) %>% 
+  ungroup()
+```
+
+```{r, results='asis', echo=FALSE}
+dat_summary %>% show_df()
+```
+
+### And calculate proportion of readings that are high
+
+```{r}
+dat_summary <- dat_summary %>% 
+  mutate(proportion_high = n_high / n)
+```
+
+```{r, results='asis', echo=FALSE}
+dat_summary %>% show_df()
+```
+
+### Add a column with propotion as a round %
+
+```{r}
+dat_summary <- dat_summary %>% 
+  mutate(percentage_high = round(proportion_high * 100, digits = 0))
+```
+
+```{r, results='asis', echo=FALSE}
+dat_summary %>% show_df()
+```
+
