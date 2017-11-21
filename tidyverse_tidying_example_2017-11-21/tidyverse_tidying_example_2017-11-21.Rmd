@@ -7,6 +7,7 @@ output:
     toc: yes
     toc_float: yes
     toc_depth: 3
+    keep_md: true
 ---
 
 ```{r setup, include=TRUE, message=FALSE, warning=FALSE}
