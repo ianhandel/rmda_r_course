@@ -31,6 +31,10 @@ Importing and tidy some ficitious data
 
 NB: These results are very much made up!
 
+Code to show the intermediate results is hidden to keep things tidier.
+
+_View(dat)_ would show the table 'dat' in the table viewer in RStudio during an analysis.
+
 
 ## Import data
 
