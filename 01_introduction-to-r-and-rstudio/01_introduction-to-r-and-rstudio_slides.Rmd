@@ -17,44 +17,35 @@ opts_chunk$set(comment="",
                digits = 3, 
                tidy = FALSE, 
                prompt = FALSE,
-               fig.align = 'center')
+               fig.align = 'center',
+               out.width = "600px")
 theme_set(theme_classic() + theme(legend.position = "top"))
 ```
 
-## Here's code that makes the slide
+## Welcome to RStudio
 
-```{r, fig.width=5, fig.height=3.5}
-
-ggplot(mpg, aes(reorder(manufacturer, hwy), hwy)) +
-  geom_boxplot(colour = "grey70") +
-  geom_point(position = position_jitter(h = 0, w = 0.2), pch = 1) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Manufacturer", y = "Highway MPG")
-
+```{r, out.width="100%", echo = FALSE}
+include_graphics("figures/rstudio_start_01.png")
 ```
+---
 
-## Now another slide
-
-And some more words
-
-About nothing in particular
-
-```{r, out.width="600px", echo = FALSE}
-include_graphics("figures/pretty_picture.png")
+```{r, out.width="100%", echo = FALSE}
+include_graphics("figures/rstudio_start_02.png")
 ```
+---
 
-## And some of the data that made it...
-
-```{r, echo = FALSE, results='asis'}
-mpg %>% 
-  sample_n(10) %>%
-  kable(format = "html") %>% 
-  kableExtra::kable_styling(font_size = 16)
+```{r, out.width="100%", echo = FALSE}
+include_graphics("figures/rstudio_start_03.png")
 ```
+---
 
-## And a slide of text
+```{r, out.width="100%", echo = FALSE}
+include_graphics("figures/rstudio_start_04.png")
+```
+---
 
-* Some stuff
-* And some more
-* What else is there to say???
+```{r, out.width="100%", echo = FALSE}
+include_graphics("figures/rstudio_start_05.png")
+```
+---
 
